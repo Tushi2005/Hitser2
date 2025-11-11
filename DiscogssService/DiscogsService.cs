@@ -9,7 +9,7 @@ namespace MusicQuiz
 {
     internal class DiscogsService
     {
-        // Megtaálja egy dalhoz a legkorábbi megjelenési dátumot
+        // Get the earliease release date for a song and artist
         public static int? GetEarliestReleaseYear(DiscogsClient client, string artist, string track)
         {
             var searchResult = client.SearchAllAsync(new SearchCriteria
