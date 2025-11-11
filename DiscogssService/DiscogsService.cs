@@ -7,8 +7,18 @@ using System.Threading.Tasks;
 
 namespace MusicQuiz
 {
-    internal class DiscogsService
+    public class DiscogsService 
     {
+        public DiscogsClient Client { get; }
+
+        public DiscogsService()
+        {
+            Client = new DiscogsClient(
+               new HttpClient(),
+               new ApiQueryBuilder(new HardCodedClientConfig())
+            );
+        }
+
         // Get the earliease release date for a song and artist
         public static int? GetEarliestReleaseYear(DiscogsClient client, string artist, string track)
         {
@@ -36,5 +46,7 @@ namespace MusicQuiz
 
             return years.Min();
         }
+
+
     }
 }

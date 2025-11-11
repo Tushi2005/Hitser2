@@ -1,4 +1,5 @@
-﻿using SpotifyAPI.Web;
+﻿using Microsoft.AspNetCore.Hosting.Server;
+using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,26 @@ namespace MusicQuiz
 {
     public class SpotifyService
     {
-        private static SpotifyClient? _spotifyClient;
+        private static SpotifyClient? _spotify;
+
+        // Authentication
+        public static async Task Authenticathion(EmbedIOAuthServer server)
+        {
+            server = new EmbedIOAuthServer(new Uri("http://127.0.0.1:5543/callback"), 5543);
+            await server.Start();
+
+            server.AuthorizationCodeReceived += OnAuthorizationCodeReceived;
+            server.ErrorReceived += OnErrorReceived;
+
+            var request = new LoginRequest(server.BaseUri, "8ef7940ed411467eb151ddacecd9284b", LoginRequest.ResponseType.Code)
+            {
+                Scope = new List<string> { Scopes.UserReadEmail, Scopes.UserReadCurrentlyPlaying }
+            };
+            BrowserUtil.Open(request.ToUri());
+
+            Console.WriteLine("Jelentkezz be a Spotify-fiókoddal, majd térj vissza ide.");
+            Console.ReadLine();
+        }
 
         // Get the spotify client
         public static async Task OnAuthorizationCodeReceived(object sender, AuthorizationCodeResponse response)
@@ -27,7 +47,7 @@ namespace MusicQuiz
                 )
             );
 
-            _spotifyClient = new SpotifyClient(tokenResponse.AccessToken);
+            _spotify = new SpotifyClient(tokenResponse.AccessToken);
             Console.WriteLine("✅ Bejelentkezés sikeres!");
         }
 
@@ -38,7 +58,7 @@ namespace MusicQuiz
                 await server.Stop();
         }
 
-        public static SpotifyClient? GetClient() => _spotifyClient;
+        public static SpotifyClient? GetClient() => _spotify;
 
         // Get the currently played track's name and the artist's name
         public static async Task<string[]?> GiveBackArtistAndTrackName(SpotifyClient? spotify)
@@ -76,6 +96,53 @@ namespace MusicQuiz
             {
                 Console.WriteLine($"❌ Hiba történt: {ex.Message}");
                 return null;
+            }
+        }
+
+
+        public static async Task Play()
+        {
+            try
+            {
+                // Lekérjük, hogy mi játszik éppen
+                var currentlyPlaying = await _spotify.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+
+                if (currentlyPlaying?.IsPlaying == true)
+                {
+                    // Ha éppen megy a zene, megállítjuk
+                    await _spotify.Player.PausePlayback();
+                    Console.WriteLine("⏸️ Zene megállítva.");
+                }
+                else
+                {
+                    // Ha nem megy a zene, elindítjuk
+                    await _spotify.Player.ResumePlayback();
+                    Console.WriteLine("▶️ Zene elindítva.");
+                }
+            }
+            catch (APIUnauthorizedException)
+            {
+                Console.WriteLine("⚠️ A token lejárt vagy nincs megfelelő engedély.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Hiba történt: {ex.Message}");
+            }
+        }
+
+        public static async Task NextSong()
+        {
+            try
+            {
+                await _spotify.Player.SkipNext();
+            }
+            catch (APIUnauthorizedException)
+            {
+                Console.WriteLine("⚠️ A token lejárt vagy nincs megfelelő engedély.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Hiba történt: {ex.Message}");
             }
         }
     }

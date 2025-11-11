@@ -15,48 +15,19 @@ class Program
     static async Task Main()
     {
         //* ------------ Spotify Auth ------------ *//
-        _server = new EmbedIOAuthServer(new Uri("http://127.0.0.1:5543/callback"), 5543);
-        await _server.Start();
-
-        _server.AuthorizationCodeReceived += SpotifyService.OnAuthorizationCodeReceived;
-        _server.ErrorReceived += SpotifyService.OnErrorReceived;
-
-        // login kérés
-        var request = new LoginRequest(_server.BaseUri, "8ef7940ed411467eb151ddacecd9284b", LoginRequest.ResponseType.Code)
-        {
-            Scope = new List<string> { Scopes.UserReadEmail, Scopes.UserReadCurrentlyPlaying }
-        };
-        BrowserUtil.Open(request.ToUri());
-
-        Console.WriteLine("Jelentkezz be a Spotify-fiókoddal, majd térj vissza ide.");
-        Console.ReadLine(); // várunk, amíg a user befejezi az auth-ot
-
-        // ekkor már a kliens létrejött
+        await SpotifyService.Authenticathion(_server);
         var spotify = SpotifyService.GetClient();
 
-        if (spotify != null)
-        {
-            var artistAndTrack = await SpotifyService.GiveBackArtistAndTrackName(spotify);
-            if (artistAndTrack != null)
-            {
-                Console.WriteLine($"🎵 {artistAndTrack[1]} — {artistAndTrack[0]}");
-            }
-        }
-        else
-        {
-            Console.WriteLine("❌ Sikertelen autentikáció.");
-        }
+     
 
         // curretnly played song artist name and track name
         string[]? artistAndTrackName = await SpotifyService.GiveBackArtistAndTrackName(spotify);
 
         //* ------------ Discgos ------------ *//
-        var client = new DiscogsClient(
-            new HttpClient(),
-            new ApiQueryBuilder(new HardCodedClientConfig())
-        );
 
-        int? earliestYear = DiscogsService.GetEarliestReleaseYear(client, artistAndTrackName[0], artistAndTrackName[1]);
+        DiscogsService discogsService = new DiscogsService();
+
+        int? earliestYear = DiscogsService.GetEarliestReleaseYear(discogsService.Client , artistAndTrackName[0], artistAndTrackName[1]);
 
         if (earliestYear.HasValue)
             Console.WriteLine($"Legkorábbi megjelenés: {earliestYear.Value}");
