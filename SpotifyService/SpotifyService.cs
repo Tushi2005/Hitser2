@@ -23,7 +23,7 @@ namespace MusicQuiz
 
             var request = new LoginRequest(server.BaseUri, "8ef7940ed411467eb151ddacecd9284b", LoginRequest.ResponseType.Code)
             {
-                Scope = new List<string> { Scopes.UserReadEmail, Scopes.UserReadCurrentlyPlaying }
+                Scope = new List<string> { Scopes.UserReadEmail, Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState }
             };
             BrowserUtil.Open(request.ToUri());
 
@@ -61,17 +61,11 @@ namespace MusicQuiz
         public static SpotifyClient? GetClient() => _spotify;
 
         // Get the currently played track's name and the artist's name
-        public static async Task<string[]?> GiveBackArtistAndTrackName(SpotifyClient? spotify)
+        public static async Task<string[]?> GiveBackArtistAndTrackName()
         {
-            if (spotify == null)
-            {
-                Console.WriteLine("❌ Spotify kliens nincs inicializálva.");
-                return null;
-            }
-
             try
             {
-                var currentlyPlaying = await spotify.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
+                var currentlyPlaying = await _spotify.Player.GetCurrentlyPlaying(new PlayerCurrentlyPlayingRequest());
 
                 if (currentlyPlaying?.Item is FullTrack track)
                 {

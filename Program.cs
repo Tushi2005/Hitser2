@@ -17,22 +17,64 @@ class Program
         //* ------------ Spotify Auth ------------ *//
         await SpotifyService.Authenticathion(_server);
         var spotify = SpotifyService.GetClient();
-
-     
-
-        // curretnly played song artist name and track name
-        string[]? artistAndTrackName = await SpotifyService.GiveBackArtistAndTrackName(spotify);
-
-        //* ------------ Discgos ------------ *//
-
         DiscogsService discogsService = new DiscogsService();
 
-        int? earliestYear = DiscogsService.GetEarliestReleaseYear(discogsService.Client , artistAndTrackName[0], artistAndTrackName[1]);
+        string? cmd;
 
-        if (earliestYear.HasValue)
-            Console.WriteLine($"Legkorábbi megjelenés: {earliestYear.Value}");
-        else
-            Console.WriteLine("Nincs találat vagy nincs elérhető évszám.");
+        do
+        {
+            Console.WriteLine("Válassz egy opciót:");
+            Console.WriteLine("1 - Aktuális zene évszáma");
+            Console.WriteLine("2 - Zene megállítása / elindítása");
+            Console.WriteLine("3 - Következő zene");
+            Console.WriteLine("exit - Kilépés");
+            Console.Write("> ");
+
+            cmd = Console.ReadLine();
+
+            switch (cmd)
+            {
+                case "1":
+                    {
+                        // Lekérjük az aktuális dalt
+                        string[]? artistAndTrackName = await SpotifyService.GiveBackArtistAndTrackName();
+                        if (artistAndTrackName != null)
+                        {
+                            // Lekérjük a legrégebbi megjelenés évét a Discogs API-val
+                            int? earliestYear = DiscogsService.GetEarliestReleaseYear(discogsService.Client, artistAndTrackName[0], artistAndTrackName[1]);
+                            if (earliestYear.HasValue)
+                                Console.WriteLine($"🎵 {artistAndTrackName[0]} - {artistAndTrackName[1]} ({earliestYear.Value})");
+                            else
+                                Console.WriteLine("❌ Nem található megjelenési év.");
+                        }
+                        break;
+                    }
+                case "2":
+                    {
+                        // Toggle play / pause
+                        await SpotifyService.Play();
+                        break;
+                    }
+                case "3":
+                    {
+                        // Következő dal
+                        await SpotifyService.NextSong();
+                        break;
+                    }
+                case "exit":
+                    {
+                        Console.WriteLine("Kilépés...");
+                        break;
+                    }
+                default:
+                    {
+                        Console.WriteLine("❌ Érvénytelen parancs.");
+                        break;
+                    }
+            }
+
+        } while (cmd != "exit");
+
     }
 }
 
