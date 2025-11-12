@@ -41,7 +41,7 @@ class Program
                         if (artistAndTrackName != null)
                         {
                             // Lekérjük a legrégebbi megjelenés évét a Discogs API-val
-                            int? earliestYear = DiscogsService.GetEarliestReleaseYear(discogsService.Client, artistAndTrackName[0], artistAndTrackName[1]);
+                            int? earliestYear = await DiscogsService.GetEarliestReleaseYear(discogsService._client, artistAndTrackName[0], artistAndTrackName[1]);
                             if (earliestYear.HasValue)
                                 Console.WriteLine($"🎵 {artistAndTrackName[0]} - {artistAndTrackName[1]} ({earliestYear.Value})");
                             else

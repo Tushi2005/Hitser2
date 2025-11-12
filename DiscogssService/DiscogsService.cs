@@ -1,52 +1,68 @@
 ﻿using ParkSquare.Discogs;
+using ParkSquare.Discogs.Dto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MusicQuiz
 {
     public class DiscogsService 
     {
-        public DiscogsClient Client { get; }
+        public DiscogsClient _client { get; }
 
         public DiscogsService()
         {
-            Client = new DiscogsClient(
+            _client = new DiscogsClient(
                new HttpClient(),
                new ApiQueryBuilder(new HardCodedClientConfig())
             );
         }
 
         // Get the earliease release date for a song and artist
-        public static int? GetEarliestReleaseYear(DiscogsClient client, string artist, string track)
+        public static async Task<int?> GetEarliestReleaseYear(DiscogsClient client, string artist, string track)
         {
-            var searchResult = client.SearchAllAsync(new SearchCriteria
+            var searchResult = await client.SearchAsync(new SearchCriteria
             {
-                Query = $"{artist} {track}",
-                Type = "release"
-            }).Result;
+                Artist = artist,
+                Track = track,
+                Type = "release",
+            });
 
-            if (searchResult.Results == null || searchResult.Results.Count == 0)
-                return null;
-
-            List<int> years = new List<int>();
-            foreach (var result in searchResult.Results)
+            if (searchResult.Results.Count == 0)
             {
-                if (!string.IsNullOrEmpty(result.Year))
-                {
-                    if (int.TryParse(result.Year, out int year))
-                        years.Add(year);
-                }
+                Console.WriteLine("Not found");
+                return 0;
             }
 
-            if (years.Count == 0)
-                return null;
+            // párhuzamos lekérések
+            var releaseTasks = searchResult.Results
+                .Where(r => r.ReleaseId != null)
+                .Select(async r =>
+                {
+                    try
+                    {
+                        var release = await client.GetReleaseAsync((int)r.ReleaseId);
+                        return release;
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                });
 
-            return years.Min();
+            var releases = await Task.WhenAll(releaseTasks);
+
+            // évek kigyűjtése
+            var years = releases
+                .Where(r => r != null && r.Year > 1850)
+                .Select(r => r.Year)
+                .ToList();
+
+            return years.Count > 0 ? years.Min() : 0;
         }
-
 
     }
 }

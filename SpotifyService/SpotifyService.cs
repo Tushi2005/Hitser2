@@ -4,6 +4,7 @@ using SpotifyAPI.Web.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MusicQuiz
@@ -71,8 +72,8 @@ namespace MusicQuiz
                 {
                     return new string[]
                     {
-                        string.Join(", ", track.Artists.Select(a => a.Name)),
-                        track.Name
+                    track.Artists.FirstOrDefault().Name,
+                    Regex.Replace(track.Name, @"\s*\([^)]*\)", ""),
                     };
                 }
                 else
