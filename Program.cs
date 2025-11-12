@@ -43,9 +43,9 @@ class Program
                             // Lekérjük a legrégebbi megjelenés évét a Discogs API-val
                             int? earliestYear = await DiscogsService.GetEarliestReleaseYear(discogsService._client, artistAndTrackName[0], artistAndTrackName[1]);
                             if (earliestYear.HasValue)
-                                Console.WriteLine($"🎵 {artistAndTrackName[0]} - {artistAndTrackName[1]} ({earliestYear.Value})");
+                                Console.WriteLine($"{artistAndTrackName[0]} - {artistAndTrackName[1]} ({earliestYear.Value})");
                             else
-                                Console.WriteLine("❌ Nem található megjelenési év.");
+                                Console.WriteLine("Nem található megjelenési év.");
                         }
                         break;
                     }
@@ -68,7 +68,7 @@ class Program
                     }
                 default:
                     {
-                        Console.WriteLine("❌ Érvénytelen parancs.");
+                        Console.WriteLine("Érvénytelen parancs.");
                         break;
                     }
             }

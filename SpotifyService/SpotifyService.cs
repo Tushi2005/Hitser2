@@ -49,12 +49,12 @@ namespace MusicQuiz
             );
 
             _spotify = new SpotifyClient(tokenResponse.AccessToken);
-            Console.WriteLine("✅ Bejelentkezés sikeres!");
+            Console.WriteLine("Bejelentkezés sikeres!");
         }
 
         public static async Task OnErrorReceived(object sender, string error, string state)
         {
-            Console.WriteLine($"⚠️ Hiba az engedélyezés során: {error}");
+            Console.WriteLine($"Hiba az engedélyezés során: {error}");
             if (sender is EmbedIOAuthServer server)
                 await server.Stop();
         }
@@ -84,16 +84,15 @@ namespace MusicQuiz
             }
             catch (APIUnauthorizedException)
             {
-                Console.WriteLine("⚠️ A token lejárt vagy nincs megfelelő engedély.");
+                Console.WriteLine("A token lejárt vagy nincs megfelelő engedély.");
                 return null;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Hiba történt: {ex.Message}");
+                Console.WriteLine($"Hiba történt: {ex.Message}");
                 return null;
             }
         }
-
 
         public static async Task Play()
         {
@@ -106,22 +105,22 @@ namespace MusicQuiz
                 {
                     // Ha éppen megy a zene, megállítjuk
                     await _spotify.Player.PausePlayback();
-                    Console.WriteLine("⏸️ Zene megállítva.");
+                    Console.WriteLine("Zene megállítva.");
                 }
                 else
                 {
                     // Ha nem megy a zene, elindítjuk
                     await _spotify.Player.ResumePlayback();
-                    Console.WriteLine("▶️ Zene elindítva.");
+                    Console.WriteLine("Zene elindítva.");
                 }
             }
             catch (APIUnauthorizedException)
             {
-                Console.WriteLine("⚠️ A token lejárt vagy nincs megfelelő engedély.");
+                Console.WriteLine("A token lejárt vagy nincs megfelelő engedély.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Hiba történt: {ex.Message}");
+                Console.WriteLine($"Hiba történt: {ex.Message}");
             }
         }
 
@@ -133,11 +132,11 @@ namespace MusicQuiz
             }
             catch (APIUnauthorizedException)
             {
-                Console.WriteLine("⚠️ A token lejárt vagy nincs megfelelő engedély.");
+                Console.WriteLine("A token lejárt vagy nincs megfelelő engedély.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Hiba történt: {ex.Message}");
+                Console.WriteLine($"Hiba történt: {ex.Message}");
             }
         }
     }
