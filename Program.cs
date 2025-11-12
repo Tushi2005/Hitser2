@@ -16,14 +16,16 @@ class Program
     {
         //* ------------ Spotify Auth ------------ *//
         await SpotifyService.Authenticathion(_server);
-        var spotify = SpotifyService.GetClient();
+
+        using var db = new MusicDbContext();
         DiscogsService discogsService = new DiscogsService();
+        var musicService = new MusicService(db, discogsService);
+        var tracker = new SongTracker(musicService);
 
         string? cmd;
-
         do
         {
-            Console.WriteLine("Válassz egy opciót:");
+            Console.WriteLine("\nVálassz egy opciót:");
             Console.WriteLine("1 - Aktuális zene évszáma");
             Console.WriteLine("2 - Zene megállítása / elindítása");
             Console.WriteLine("3 - Következő zene");
@@ -36,41 +38,38 @@ class Program
             {
                 case "1":
                     {
-                        // Lekérjük az aktuális dalt
-                        string[]? artistAndTrackName = await SpotifyService.GiveBackArtistAndTrackName();
-                        if (artistAndTrackName != null)
+                        // Csak itt kérdezzük le az aktuális számot
+                        string[]? artistAndTrack = await SpotifyService.GiveBackArtistAndTrackName();
+                        if (artistAndTrack != null)
                         {
-                            // Lekérjük a legrégebbi megjelenés évét a Discogs API-val
-                            int? earliestYear = await DiscogsService.GetEarliestReleaseYear(discogsService._client, artistAndTrackName[0], artistAndTrackName[1]);
-                            if (earliestYear.HasValue)
-                                Console.WriteLine($"{artistAndTrackName[0]} - {artistAndTrackName[1]} ({earliestYear.Value})");
+                            string artist = artistAndTrack[0];
+                            string title = artistAndTrack[1];
+
+                            // Lekérjük az adatbázisból vagy Discogs API-ból
+                            int? year = await musicService.GetOrFetchSongAsync(title, artist);
+                            
+                            if (year.HasValue)
+                                Console.WriteLine($"{artist} - {title} ({year.Value})");
                             else
-                                Console.WriteLine("Nem található megjelenési év.");
+                                Console.WriteLine($"{artist} - {title} (Megjelenési év nem található)");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Nincs elérhető Spotify zene.");
                         }
                         break;
                     }
                 case "2":
-                    {
-                        // Toggle play / pause
-                        await SpotifyService.Play();
-                        break;
-                    }
+                    await SpotifyService.Play();
+                    break;
                 case "3":
-                    {
-                        // Következő dal
-                        await SpotifyService.NextSong();
-                        break;
-                    }
+                    await SpotifyService.NextSong();
+                    break;
                 case "exit":
-                    {
-                        Console.WriteLine("Kilépés...");
-                        break;
-                    }
+                    break;
                 default:
-                    {
-                        Console.WriteLine("Érvénytelen parancs.");
-                        break;
-                    }
+                    Console.WriteLine("Érvénytelen parancs.");
+                    break;
             }
 
         } while (cmd != "exit");
@@ -84,4 +83,6 @@ public class HardCodedClientConfig : IClientConfig
     public string AuthToken => "PpAovVHPOzKOyXBSgTYNmfCYLtfSRBlbdTuGULye";
     public string BaseUrl => "https://api.discogs.com";
 }
+
+
 

@@ -78,7 +78,7 @@ namespace MusicQuiz
                 }
                 else
                 {
-                    Console.WriteLine("🎵 Jelenleg nem játszik semmit a Spotify.");
+                    Console.WriteLine("Jelenleg nem játszik semmit a Spotify.");
                     return null;
                 }
             }

@@ -22,9 +22,9 @@ namespace MusicQuiz
         }
 
         // Get the earliease release date for a song and artist
-        public static async Task<int?> GetEarliestReleaseYear(DiscogsClient client, string artist, string track)
+        public async Task<int?> GetEarliestReleaseYear(string artist, string track)
         {
-            var searchResult = await client.SearchAsync(new SearchCriteria
+            var searchResult = await _client.SearchAsync(new SearchCriteria
             {
                 Artist = artist,
                 Track = track,
@@ -37,6 +37,14 @@ namespace MusicQuiz
                 return 0;
             }
 
+            // Debug: írjuk ki az összes találatot
+            //Console.WriteLine("Search results:");
+            //foreach (var r in searchResult.Results)
+            //{
+            //    var release = await _client.GetReleaseAsync((int)r.ReleaseId);
+            //    Console.WriteLine($"Year: {release.Year} - Artist: {release.ArtistsSort} - Track Name: {release.Title}");
+            //}
+
             // párhuzamos lekérések
             var releaseTasks = searchResult.Results
                 .Where(r => r.ReleaseId != null)
@@ -44,7 +52,7 @@ namespace MusicQuiz
                 {
                     try
                     {
-                        var release = await client.GetReleaseAsync((int)r.ReleaseId);
+                        var release = await _client.GetReleaseAsync((int)r.ReleaseId);
                         return release;
                     }
                     catch
