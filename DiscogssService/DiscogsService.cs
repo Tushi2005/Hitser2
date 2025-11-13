@@ -31,6 +31,16 @@ namespace MusicQuiz
                 Type = "release",
             });
 
+            // Ha nincs találat, próbáljuk Query-vel
+            if (searchResult == null || searchResult.Results.Count == 0)
+            {
+                searchResult = await _client.SearchAsync(new SearchCriteria
+                {
+                    Query = $"{artist} {track}",
+                    Type = "release"
+                });
+            }
+
             if (searchResult.Results.Count == 0)
             {
                 Console.WriteLine("Not found");

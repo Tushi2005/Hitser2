@@ -12,6 +12,7 @@ namespace MusicQuiz
     public class SpotifyService
     {
         private static SpotifyClient? _spotify;
+        private static List<IPlayableItem> totalTrack = new();
 
         // Authentication
         public static async Task Authenticathion(EmbedIOAuthServer server)
@@ -24,7 +25,8 @@ namespace MusicQuiz
 
             var request = new LoginRequest(server.BaseUri, "8ef7940ed411467eb151ddacecd9284b", LoginRequest.ResponseType.Code)
             {
-                Scope = new List<string> { Scopes.UserReadEmail, Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState }
+                Scope = new List<string> { Scopes.UserReadEmail, Scopes.UserReadCurrentlyPlaying, Scopes.UserModifyPlaybackState, Scopes.PlaylistModifyPublic, Scopes.PlaylistReadPrivate,
+                Scopes.PlaylistReadCollaborative, Scopes.PlaylistModifyPrivate}
             };
             BrowserUtil.Open(request.ToUri());
 
@@ -50,6 +52,7 @@ namespace MusicQuiz
 
             _spotify = new SpotifyClient(tokenResponse.AccessToken);
             Console.WriteLine("Bejelentkezés sikeres!");
+            await FillTotalTrack();
         }
 
         public static async Task OnErrorReceived(object sender, string error, string state)
@@ -124,10 +127,50 @@ namespace MusicQuiz
             }
         }
 
+        private static async Task FillTotalTrack()
+        {
+            var playlistId = "1HTknRUz8uGFFgQsnHlXuZ";
+            var playlist = await _spotify.Playlists.GetItems(playlistId);
+            var trackCount = playlist.Total;
+
+            int offset = 0;
+            int limit = 100;
+
+            while (offset < trackCount)
+            {
+                // Lekérjük az aktuális "oldalt"
+                var page = await _spotify.Playlists.GetItems(playlistId, new PlaylistGetItemsRequest
+                {
+                    Limit = limit,
+                    Offset = offset
+                });
+
+                // Hozzáadjuk a track-eket a listához
+                foreach (var item in page.Items)
+                {
+                    totalTrack.Add(item.Track); // item.Track implementálja IPlayableItem-et
+                }
+
+                // Offset növelése a következő oldalra
+                offset += limit;
+            }
+        }
+
         public static async Task NextSong()
         {
             try
             {
+                // Random index kiválasztása
+                var random = new Random();
+                int x = random.Next(totalTrack.Count); // 0 .. trackCount-1
+
+                // A track kinyerése a listából
+                var randomTrack = totalTrack[x] as FullTrack;       // PlaylistTrack object
+
+                // Track hozzáadása a queue-hoz
+                await _spotify.Player.AddToQueue(new PlayerAddToQueueRequest(randomTrack.Uri));
+
+                // SkipNext, hogy rögtön ez a track jöjjön
                 await _spotify.Player.SkipNext();
             }
             catch (APIUnauthorizedException)
