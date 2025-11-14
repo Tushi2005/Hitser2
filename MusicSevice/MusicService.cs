@@ -2,7 +2,7 @@
 
 namespace MusicQuiz
 {
-    internal class MusicService
+    public class MusicService
     {
         private readonly MusicDbContext _db;
         private readonly DiscogsService discogsService;

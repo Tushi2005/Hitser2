@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MusicQuiz
 {
-    internal class MusicDbContext:DbContext
+    public class MusicDbContext:DbContext
     {
         public DbSet<Song> Songs { get; set; }
         public DbSet<Artist> Artists { get; set; }

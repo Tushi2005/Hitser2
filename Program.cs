@@ -20,7 +20,6 @@ class Program
         using var db = new MusicDbContext();
         DiscogsService discogsService = new DiscogsService();
         var musicService = new MusicService(db, discogsService);
-        var tracker = new SongTracker(musicService);
 
         string? cmd;
         do

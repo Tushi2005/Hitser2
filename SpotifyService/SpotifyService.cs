@@ -11,6 +11,7 @@ namespace MusicQuiz
 {
     public class SpotifyService
     {
+        static Random random = new Random();
         private static SpotifyClient? _spotify;
         private static List<IPlayableItem> totalTrack = new();
 
@@ -161,8 +162,7 @@ namespace MusicQuiz
             try
             {
                 // Random index kiválasztása
-                var random = new Random();
-                int x = random.Next(totalTrack.Count); // 0 .. trackCount-1
+                          int x = random.Next(totalTrack.Count); // 0 .. trackCount-1
 
                 // A track kinyerése a listából
                 var randomTrack = totalTrack[x] as FullTrack;       // PlaylistTrack object

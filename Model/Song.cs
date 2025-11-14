@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MusicQuiz
 {
-    internal class Song
+    public class Song
     {
         public int Id { get; set; }
         public string Title { get; set; } = string.Empty;
